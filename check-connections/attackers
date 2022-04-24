@@ -1,0 +1,76 @@
+#!/usr/bin/env python3.6
+
+########################################################
+#                                                      #
+#                                                      #
+# Script Name : Attackers                              #
+# Author      : Nijesh V N                             # 
+# Use         : Lists connections to the different     #
+#               server ports                           #
+# Depolyed on : 18th May 2020			                     #
+#                 				                             #
+#                                                      #
+########################################################
+
+
+import sys
+import psutil
+import requests
+
+
+argument = sys.argv[1:]
+
+usage = "Usage: attackers <Port-Number>"
+
+# To get country Name using IPStack API
+
+def getCityName(ip=None):
+
+  if ip != None:
+
+    url = "http://api.ipstack.com/{}?access_key=c8fee05d5f93e4daf26abcfb4f9d0b89".format(ip)
+    response = requests.get(url)
+    return response.json()['country_name']
+
+  else:
+
+    return None
+
+# Print usage if the length is exceeded
+
+if len(argument) == 1:
+
+# Get the connections in the server using psutil module
+
+  connections = psutil.net_connections()
+  ipcounter = {}
+
+# Check whether user is provided the listen port and remote address is not None. Then count the IPs
+
+  for connection in connections:
+  
+    listenport = connection.laddr.port
+  
+    if listenport == int(sys.argv[1]):
+
+      if connection.raddr:
+
+        remoteip = connection.raddr.ip
+
+        if remoteip not in ipcounter:
+
+          ipcounter[remoteip] = 1
+
+        else:
+
+          ipcounter[remoteip] += 1
+
+# Output of ipcounter is a dictionary and sort it using value.
+# The IP with higest connections will display first. 
+
+  for ip in sorted(ipcounter, key=ipcounter.get, reverse=True):
+    city = getCityName(ip=ip)
+    print('{:15} : {:5} : {}'.format(ip, ipcounter[ip], city))
+    
+else:
+  print(usage)

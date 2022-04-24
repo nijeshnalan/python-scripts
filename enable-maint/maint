@@ -1,0 +1,140 @@
+#!/usr/bin/env python2.7
+
+########################################################
+#                                                      #
+#                                                      #
+# Script Name : Maint                                  #
+# Author      : Nijesh V N                             #
+# Use         : Disables TCP wrapper and Firewall for  #
+#               a particular time                      #
+# Depolyed on : 5th May 2020                           #
+#                                                      #
+#                                                      #
+########################################################
+
+
+import argparse
+import sys
+import shutil
+import subprocess
+import os
+
+
+parser = argparse.ArgumentParser(description='To disable TCP Wrappers and Firewall for sometime')
+parser.add_argument('-a', '--all', dest='DISBALE_ALL', action='store_true', help='Disables TCP Wrappers and Firewall for 1 Hour')
+parser.add_argument('-t', '--time', dest='TIME_LIMIT', default='60', type=int,  help='Desired time for maintenance in munutes')
+parser.add_argument('-w', '--wrapper' , dest='DISABLE_WRAPPER' , action='store_true',  help='Disables only TCP Wrapper files')
+parser.add_argument('-f', '--firewall' , dest='DISABLE_FIREWALL' , action='store_true', help='Disables Firewall only for 1 hour')
+parser.add_argument('-c', '--cancel', dest='CANCEL_JOB' , action='store_true', help='Cancel the existing job and revert the changes')
+parser.add_argument('-v', '--version', action='version', version='%(prog)s 3.0')
+args = parser.parse_args()
+
+interval = args.TIME_LIMIT
+disable_all = args.DISBALE_ALL
+disable_firewall = args.DISABLE_FIREWALL
+disable_wrapper = args.DISABLE_WRAPPER
+cancel_job = args.CANCEL_JOB
+
+# Management Commands ##############################
+
+hosts_directory = '/usr/local/hbh_linux/tmp/maint'
+hosts_disable = 'mv /etc/hosts.allow  {}'.format(hosts_directory)
+hosts_enable = 'mv {}  /etc/'.format(os.path.join(hosts_directory,'hosts.allow'))
+lock_enable = 'touch /usr/local/hbh_linux/tmp/maint/maint.lock'
+lock_disable = 'rm -f /usr/local/hbh_linux/tmp/maint/maint.lock'
+
+iptables_start = '/usr/sbin/service iptables start'
+iptables_stop = '/usr/sbin/service iptables stop'
+
+log_location = '/var/log/maint.log'
+at_file = '/usr/local/hbh_linux/tmp/maint/at.tmp'
+
+at_log_enable = 'echo "`date`: Disabled maint script"  >> {}'.format(log_location)
+at_cmd = 'at now + {} minutes < {} '.format(interval,at_file)
+
+#####################################################
+
+
+if disable_all and ( disable_firewall or disable_wrapper or cancel_job ) and interval:
+  print('Cannot use the provided options togather!')
+  sys.exit(1)
+
+elif os.path.isfile('/usr/local/hbh_linux/tmp/maint/maint.lock'):
+
+  print('Existing Maint Job Found!')
+
+  if cancel_job:
+
+    if os.path.getsize("/usr/local/hbh_linux/tmp/maint/at.tmp") > 0:
+
+      confirm = raw_input('Are you really want to cancel it? (yes/no): ')
+
+      if confirm.lower() == 'yes' or confirm.lower() == 'y':
+
+        cancel_job_log = 'echo "`date`: Trying to disable maint script manually using -c option..."  >> {}'.format(log_location)
+        subprocess.call(cancel_job_log,shell=True)
+        print('Cancelling it...')
+        subprocess.call("clear_job=`atq | awk {'print $1'}`; at -c $clear_job | at now; atrm $clear_job; true > /usr/local/hbh_linux/tmp/maint/at.tmp",shell=True)
+
+      else:
+
+        sys.exit(2)
+
+
+elif disable_all:
+
+  disable_all_log = 'echo "`date`: Enabled maint script - Disabled firewall and hosts.allow file for {} minutes"  >> {}'.format(interval, log_location)
+  subprocess.call(disable_all_log,shell=True)
+  subprocess.call(hosts_disable,shell=True)
+  subprocess.call(iptables_stop,shell=True)
+  subprocess.call(lock_enable,shell=True)
+
+  with open('/usr/local/hbh_linux/tmp/maint/at.tmp', 'w') as file:
+    file.write(iptables_start)
+    file.write('\n')
+    file.write(hosts_enable)
+    file.write('\n')
+    file.write(lock_disable)
+    file.write('\n')
+    file.write(at_log_enable)
+  subprocess.call(at_cmd, shell=True)
+  subprocess.call("true > /usr/local/hbh_linux/tmp/maint/at.tmp ; atq | awk {'print $1'} > /usr/local/hbh_linux/tmp/maint/at.tmp", shell=True)
+
+
+elif disable_firewall:
+
+  disable_fw_log = 'echo "`date`: Enabled maint script - Disabled firewall for {} minutes"  >> {}'.format(interval, log_location)
+  subprocess.call(disable_fw_log,shell=True)
+  subprocess.call(iptables_stop,shell=True)
+  subprocess.call(lock_enable,shell=True)
+
+  with open('/usr/local/hbh_linux/tmp/maint/at.tmp', 'w') as file:
+    file.write(iptables_start)
+    file.write('\n')
+    file.write(lock_disable)
+    file.write('\n')
+    file.write(at_log_enable)
+  subprocess.call(at_cmd, shell=True)
+  subprocess.call("true > /usr/local/hbh_linux/tmp/maint/at.tmp ; atq | awk {'print $1'} > /usr/local/hbh_linux/tmp/maint/at.tmp", shell=True)
+
+
+elif disable_wrapper:
+
+  disable_wrapper_log = 'echo "`date`: Enabled maint script - Disabled hosts.allow file for {} minutes"  >> {}'.format(interval, log_location)
+  subprocess.call(disable_wrapper_log,shell=True)
+  subprocess.call(hosts_disable,shell=True)
+  subprocess.call(lock_enable,shell=True)
+
+  with open('/usr/local/hbh_linux/tmp/maint/at.tmp', 'w') as file:
+    file.write(hosts_enable)
+    file.write('\n')
+    file.write(lock_disable)
+    file.write('\n')
+    file.write(at_log_enable)
+  subprocess.call(at_cmd, shell=True)
+  subprocess.call("true > /usr/local/hbh_linux/tmp/maint/at.tmp ; atq | awk {'print $1'} > /usr/local/hbh_linux/tmp/maint/at.tmp", shell=True)
+
+
+elif cancel_job:
+  
+  print("No existing maint jobs!")
