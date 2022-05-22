@@ -3,7 +3,7 @@
 ## SYNOPSIS
 
 ```sh
-rbl_check \<IP Address\>
+rbl_check <IP Address>
 ```
 
 ## DESCRIPTION
