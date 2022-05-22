@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+
+import sys
+import ipaddress
+import subprocess
+import json
+
+getIP  = sys.argv[1:]
+
+try:
+    ipAddr = ipaddress.ip_address(getIP[0])
+
+except:
+    print("Not a valid IP address!")
+    sys.exit(2)
+
+finally:
+    if len(getIP) != 1:
+        print("Usage: check_rbl.py <IP address>")
+        sys.exit(3)
+
+
+if ipAddr.is_private == False:
+    reverseIP = ipAddr.reverse_pointer.rstrip('.in-addr.arpa')
+
+else:
+    print("Not a public IP!")
+    sys.exit(4)
+
+with open('rblInfo.db') as f:
+    rblNames = json.loads(f.read())
+
+listedRbl = []
+notListedRbl = []
+
+for rblName in rblNames:
+
+    result = subprocess.run(["nslookup", "{}.{}".format(reverseIP,rblName.strip())], capture_output=True, text=True)
+
+    if "Non-authoritative answer" in result.stdout:
+        listedRbl.append([rblName, rblNames[rblName]])
+
+    else:
+        notListedRbl.append([rblName, rblNames[rblName]])
+
+def checkResult(resultList):
+    for listed in resultList:
+        print("{:40} : {}".format(listed[0],listed[1]))
+
+if len(listedRbl) == 0:
+    print("\nYour IP address is clean!")
+
+else:
+    print("============== Listed RBLs ==============")
+
+checkResult(listedRbl)
+
+print("\n=========== Not Listed RBLs =============")
+
+checkResult(notListedRbl)
