@@ -8,7 +8,9 @@ rbl_check \<IP Address\>
 
 ## DESCRIPTION
 
-**rbl_check** is a command line tool that checks a mail server IP address against over 80 DNS based email blacklists. This script prints the listed RBLs with respective delist URL. **rblInfo.db** This file contains the details of the RBLs. 
+**rbl_check** is a command line tool that checks a mail server IP address against over 80 DNS based email blacklists. This script prints the listed RBLs with respective delist URL. 
+
+**rblInfo.db** This file contains the details of the RBLs. 
 
 **Checks the IP against the following RBLs:**
 
