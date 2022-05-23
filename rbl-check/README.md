@@ -8,11 +8,11 @@ rbl_check <IP Address>
 
 ## DESCRIPTION
 
-**rbl_check** is a command line tool that checks a mail server IP address against over 80 DNS based email blacklists. This script prints the listed RBLs with respective delist URL. 
+**[rbl_check](https://github.com/nijeshnalan/python-scripts/blob/master/rbl-check/rbl_check)** is a command line tool that checks a mail server IP address against over 80 DNS based email blacklists. This script prints the listed RBLs with respective delist URL. 
 
-**rblInfo.db** This file contains the details of the RBLs. 
+**[rblInfo.db](https://github.com/nijeshnalan/python-scripts/blob/master/rbl-check/rblInfo.db)** This file contains the details of the RBLs. 
 
-**Checks the IP against the following RBLs:**
+**This commandline tool checks the IP against the following RBLs:**
 
 |    |    |    |
 | ------ | ------ | ------ |
