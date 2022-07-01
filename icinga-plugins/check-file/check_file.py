@@ -14,7 +14,7 @@ for argument in arguments:
 
     else:
         print("CRITICAL - File {} not exists".format(argument))
-        fileCounter += 1
+        failCount += 1
 
 if failCount == 0:
     sys.exit(0)
