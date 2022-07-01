@@ -6,4 +6,5 @@
 4. [check_purefa_hw.py](https://github.com/nijeshnalan/python-scripts/tree/master/icinga-plugins/check-purefa-hw): Icinga plugin to check the components of Pure Storage device.
 5. [check_time_snmp.py](https://github.com/nijeshnalan/python-scripts/tree/master/icinga-plugins/check-time-snmp): Icinga plugin to check the server time using SNMP. 
 6. [rbl_check.py](https://github.com/nijeshnalan/python-scripts/tree/master/rbl-check): A script for RBL blacklist check.
+7. [file_check.py](https://github.com/nijeshnalan/python-scripts/tree/master/icinga-plugins/check-file): A simple NRPE plugin which checks a file or files existing or not.
  
